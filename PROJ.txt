@@ -1,0 +1,92 @@
+       ID DIVISION.                                                     00010000
+       PROGRAM-ID. FILEPGM.                                             00020000
+       ENVIRONMENT DIVISION.                                            00030000
+       INPUT-OUTPUT SECTION.                                            00040000
+       FILE-CONTROL.                                                    00050000
+           SELECT FILE1 ASSIGN TO DD1                                   00051010
+           ORGANIZATION IS SEQUENTIAL                                   00052010
+           ACCESS MODE IS SEQUENTIAL                                    00053010
+           FILE STATUS IS FS1.                                          00055010
+           SELECT FILE2 ASSIGN TO DD2                                   00060010
+           ORGANIZATION IS INDEXED                                      00070000
+           ACCESS MODE IS RANDOM                                        00080000
+           RECORD KEY KNAME                                             00090010
+           FILE STATUS IS FS2.                                          00100010
+           SELECT FILE3 ASSIGN TO DD3                                   00101010
+           ORGANIZATION IS SEQUENTIAL                                   00102010
+           ACCESS MODE IS SEQUENTIAL                                    00103010
+           FILE STATUS IS FS3.                                          00104010
+       DATA DIVISION.                                                   00110000
+       FILE SECTION.                                                    00120000
+       FD FILE1.                                                        00130000
+       01 REC1.                                                         00140000
+           02 INAME PIC X(8).                                           00150010
+           02 IQTY   PIC 9(3).                                          00160010
+           02 FILLER PIC X(69).                                         00170010
+       FD FILE2.                                                        00172010
+       01 REC2.                                                         00173010
+           02 KNAME PIC X(8).                                           00174010
+           02 KPU    PIC 9(3).                                          00174113
+           02 KQTY   PIC 9(3).                                          00175010
+           02 FILLER PIC X(66).                                         00176010
+       FD FILE3.                                                        00177010
+       01 REC3.                                                         00178010
+           02 ONAME PIC X(8).                                           00179010
+           02 FILLER PIC X(2).                                          00179110
+           02 OQTY   PIC 9(3).                                          00179210
+           02 FILLER PIC X(2).                                          00179310
+           02 OPU    PIC 9(3).                                          00179410
+           02 FILLER PIC X(2).                                          00179510
+           02 OTOTAL   PIC 9(5).                                        00179610
+           02 FILLER PIC X(55).                                         00179710
+       WORKING-STORAGE SECTION.                                         00180000
+       77 FS1 PIC 9(2).                                                 00190000
+       77 FS2 PIC 9(2).                                                 00191010
+       77 FS3 PIC 9(2).                                                 00192010
+       77 HEAD1 PIC X(80) VALUE  ALL '*'.                               00194010
+       01 HEAD2.                                                        00195010
+          02 FILLER PIC X(20).                                          00196010
+          02 FILLER PIC X(60) VALUE 'ABCD SHOPPE'.                      00197010
+       01 HEAD3.                                                        00198010
+          02 FILLER PIC X(5) VALUE 'INAME'.                             00199011
+          02 FILLER PIC X(5).                                           00199110
+          02 FILLER PIC X(3) VALUE 'QTY'.                               00199210
+          02 FILLER PIC X(2).                                           00199310
+          02 FILLER PIC X(3) VALUE 'P/U'.                               00199410
+          02 FILLER PIC X(2).                                           00199510
+          02 FILLER PIC X(10) VALUE 'TOTAL'.                            00199610
+          02 FILLER PIC X(50).                                          00199710
+       01 HEAD4.                                                        00199810
+         02 FILLER PIC X(50).                                           00199910
+         02 WS-TOT PIC 9(5) VALUE 0.                                    00200010
+         02 FILLER PIC X(25).                                           00200110
+       PROCEDURE DIVISION.                                              00201000
+            OPEN INPUT FILE1.                                           00210000
+            OPEN I-O FILE2.                                             00211010
+            OPEN OUTPUT FILE3.                                          00212010
+            WRITE REC3 FROM HEAD2.                                      00213010
+            WRITE REC3 FROM HEAD1.                                      00214010
+            WRITE REC3 FROM HEAD3.                                      00215010
+            WRITE REC3 FROM HEAD1.                                      00216010
+            PERFORM UNTIL FS1 = 10                                      00217010
+            READ FILE1                                                  00218010
+            IF FS1 = 00 THEN                                            00219010
+            MOVE INAME TO KNAME                                         00220010
+            READ FILE2 INVALID KEY DISPLAY 'KEY ERROR'                  00230010
+            NOT INVALID KEY                                             00240000
+            IF IQTY < KQTY THEN                                         00241010
+            MOVE INAME TO ONAME                                         00242010
+            MOVE IQTY TO OQTY                                           00243010
+            MOVE KPU TO OPU                                             00244010
+            COMPUTE OTOTAL = IQTY * KPU                                 00245010
+            COMPUTE WS-TOT = WS-TOT + OTOTAL                            00245112
+            WRITE REC3                                                  00246010
+            END-IF                                                      00247010
+            END-READ                                                    00249010
+            END-IF                                                      00249110
+            END-PERFORM.                                                00249210
+            WRITE REC3 FROM HEAD1.                                      00249310
+            WRITE REC3 FROM HEAD4.                                      00249410
+            CLOSE FILE1 , FILE2 , FILE3.                                00249510
+            STOP RUN.                                                   00270000
+
